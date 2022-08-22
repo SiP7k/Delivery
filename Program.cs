@@ -20,7 +20,7 @@ namespace Delivery
             }
             set
             {
-                address = value;
+                address = value.Trim();
             }
         }
         protected int ArrivalHours;
