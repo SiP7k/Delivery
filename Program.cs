@@ -11,28 +11,60 @@ namespace Delivery
     }
     abstract class Delivery
     {
-        public string Address;
+        public string Address
+        {
+            get
+            {
+                return Address;
+            }
+            set
+            {
+                Address = value.Trim();
+            }
+        }
+        protected int ArrivalHours;
 
+        virtual public void ShowArrivalHours()
+        {
+            Console.WriteLine($"Посылка прибудет через {ArrivalHours} по адресу: {Address}");
+        }
     }
     class Courier
     {
-        public CouriersNames Name;
-        Random rand = new Random();
+        public CouriersNames Name
+        {
+            get
+            {
+                return Name;
+            }
+            private set
+            {
+                Name = value;
+            }
+        }
+        private Random _rand = new Random();
 
         public Courier()
         {
-            Name = (CouriersNames)rand.Next(0, 2);
+            Name = (CouriersNames)_rand.Next(0, 2);
         }
     }
 
     class HomeDelivery : Delivery
     {
-        public Courier Courier;
+        private Courier _courier;
         public HomeDelivery()
         {
             Console.WriteLine("Введите ваш адрес");
             Address = Console.ReadLine();
-            Courier = new Courier();
+            ArrivalHours = 5;
+            _courier = new Courier();
+        }
+
+        public override void ShowArrivalHours()
+        {
+            base.ShowArrivalHours();
+            Console.WriteLine($"Ваш курьер - {_courier.Name}");
         }
     }
 
@@ -41,7 +73,9 @@ namespace Delivery
         public PickPointDelivery()
         {
             Address = "PickPoint";
+            ArrivalHours = 3;
         }
+
     }
 
     class ShopDelivery : Delivery
@@ -49,6 +83,10 @@ namespace Delivery
         public ShopDelivery()
         {
             Address = "Shop";
+        }
+        public override void ShowArrivalHours()
+        {
+            Console.WriteLine($"Ваш заказ уже собран и ждёт вас в магазине по адресу: {Address}");
         }
     }
     abstract class Product
@@ -96,28 +134,50 @@ namespace Delivery
     }
     class User
     {
-        public string Name;
-        public List<Order<HomeDelivery>> HomeOrders = new List<Order<HomeDelivery>>();
-        public List<Order<PickPointDelivery>> PointOrders = new List<Order<PickPointDelivery>>();
-        public List<Order<ShopDelivery>> ShopOrders = new List<Order<ShopDelivery>>();
-        public int OrdersCount;
+        private string _name;
+        private List<Order<HomeDelivery>> _homeOrders;
+        private List<Order<PickPointDelivery>> _pointOrders;
+        private List<Order<ShopDelivery>> _shopOrders;
+        private int _ordersCount;
 
         public User(string name)
         {
-            OrdersCount = 0;
-            Name = name;
-            HomeOrders = new List<Order<HomeDelivery>>();
-            PointOrders = new List<Order<PickPointDelivery>>();
-            ShopOrders = new List<Order<ShopDelivery>>();
+            _ordersCount = 0;
+            _name = name;
+            _homeOrders = new List<Order<HomeDelivery>>();
+            _pointOrders = new List<Order<PickPointDelivery>>();
+            _shopOrders = new List<Order<ShopDelivery>>();
         }
-        public void AddOrder<TDelivery>(List<Order<TDelivery>> listOrders) where TDelivery : Delivery
+        public void MakeOrder()
         {
             Console.Clear();
-            Order<TDelivery> order = new Order<TDelivery>(OrdersCount + 1);
-            listOrders.Add(order);
-            OrdersCount++;
+            Console.WriteLine("Выберите тип доставки:\n1 - На дом\n2 - В пункт выдачи\n3 - В магазин");
+
+            switch (Console.ReadLine())
+            {
+                case "1":
+                    AddOrder(_homeOrders);
+                    _homeOrders[_homeOrders.Count - 1].Delivery = new HomeDelivery();
+                    break;
+                case "2":
+                    AddOrder(_pointOrders);
+                    _pointOrders[_pointOrders.Count - 1].Delivery = new PickPointDelivery();
+                    break;
+                case "3":
+                    AddOrder(_shopOrders);
+                    _shopOrders[_shopOrders.Count - 1].Delivery = new ShopDelivery();
+                    break;
+            }
+            Console.Clear();
         }
-        public void ShowOrders<TDelivery>(List<Order<TDelivery>> listOrders) where TDelivery : Delivery
+        private void AddOrder<TDelivery>(List<Order<TDelivery>> listOrders) where TDelivery : Delivery
+        {
+            Console.Clear();
+            Order<TDelivery> order = new Order<TDelivery>(_ordersCount + 1);
+            listOrders.Add(order);
+            _ordersCount++;
+        }
+        private void ShowOrder<TDelivery>(List<Order<TDelivery>> listOrders) where TDelivery : Delivery
         {
             foreach (var order in listOrders)
             {
@@ -130,12 +190,22 @@ namespace Delivery
             }
             Console.WriteLine();
         }
+        public void ShowAllOrders()
+        {
+            Console.Clear();
+            Console.WriteLine("Заказы на дом:");
+            ShowOrder(_homeOrders);
+            Console.WriteLine("Заказы в пункты выдачи:");
+            ShowOrder(_pointOrders);
+            Console.WriteLine("Заказы в магазин:");
+            ShowOrder(_shopOrders);
+        }
     }
     class Order<TDelivery> where TDelivery :  Delivery
     {
         public TDelivery Delivery;
         public int Id;
-        public List<Product> Products;
+        public List<Product> Products { get; private set; }
 
         public Order(int number)
         {
@@ -230,34 +300,10 @@ namespace Delivery
                 switch (Console.ReadLine())
                 {
                     case "1":
-                        Console.Clear();
-                        Console.WriteLine("Выберите тип доставки:\n1 - На дом\n2 - В пункт выдачи\n3 - В магазин");
-
-                        switch (Console.ReadLine())
-                        {
-                            case "1":
-                                user.AddOrder(user.HomeOrders);
-                                user.HomeOrders[user.HomeOrders.Count - 1].Delivery = new HomeDelivery();
-                                break;
-                            case "2":
-                                user.AddOrder(user.PointOrders);
-                                user.PointOrders[user.PointOrders.Count - 1].Delivery = new PickPointDelivery();
-                                break;
-                            case "3":
-                                user.AddOrder(user.ShopOrders);
-                                user.ShopOrders[user.ShopOrders.Count - 1].Delivery = new ShopDelivery();
-                                break;
-                        }
-                        Console.Clear();
+                        user.MakeOrder();
                         break;
                     case "2":
-                        Console.Clear();
-                        Console.WriteLine("Заказы на дом:");
-                        user.ShowOrders(user.HomeOrders);
-                        Console.WriteLine("Заказы в пункты выдачи:");
-                        user.ShowOrders(user.PointOrders);
-                        Console.WriteLine("Заказы в магазин:");
-                        user.ShowOrders(user.ShopOrders);
+                        user.ShowAllOrders();
                         break;
                     case "3":
                         isWorking = false;
@@ -265,7 +311,7 @@ namespace Delivery
                 }
             }
         }
-        static public User CreateUser()
+        static private User CreateUser()
         {
             Console.WriteLine("Введите ваше имя:");
             string name = Console.ReadLine();
