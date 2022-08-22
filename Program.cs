@@ -129,8 +129,9 @@ namespace Delivery
             }
         }
     }
-    class Order
+    class Order<TDelivery> where TDelivery :  Delivery
     {
+        public TDelivery Delivery;
         public int Id;
         public List<Product> Products;
 
@@ -216,7 +217,7 @@ namespace Delivery
                 switch (Console.ReadLine())
                 {
                     case "1":
-                        user.AddOrder(orders);
+                        user.AddOrder(listOrders);
                         Console.WriteLine("Выберите тип доставки: ");
 
                         switch (Console.ReadLine())
