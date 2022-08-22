@@ -97,9 +97,9 @@ namespace Delivery
     class User
     {
         public string Name;
-        List<Order<HomeDelivery>> HomeOrders = new List<Order<HomeDelivery>>();
-        List<Order<PickPointDelivery>> PointOrders = new List<Order<PickPointDelivery>>();
-        List<Order<ShopDelivery>> ShopOrders = new List<Order<ShopDelivery>>();
+        public List<Order<HomeDelivery>> HomeOrders = new List<Order<HomeDelivery>>();
+        public List<Order<PickPointDelivery>> PointOrders = new List<Order<PickPointDelivery>>();
+        public List<Order<ShopDelivery>> ShopOrders = new List<Order<ShopDelivery>>();
         public int OrdersCount;
 
         public User(string name)
@@ -112,21 +112,23 @@ namespace Delivery
         }
         public void AddOrder<TDelivery>(List<Order<TDelivery>> listOrders) where TDelivery : Delivery
         {
+            Console.Clear();
             Order<TDelivery> order = new Order<TDelivery>(OrdersCount + 1);
             listOrders.Add(order);
             OrdersCount++;
         }
-        public void ShowOrders<TDelivery>(List<Order<TDelivery>> orders) where TDelivery : Delivery
+        public void ShowOrders<TDelivery>(List<Order<TDelivery>> listOrders) where TDelivery : Delivery
         {
-            foreach (var order in orders)
+            foreach (var order in listOrders)
             {
-                Console.WriteLine($"Заказ: {order.Id} - Адресс:{order.Delivery.Address}");
+                Console.WriteLine($"Заказ: \n{order.Id} - Адрес:{order.Delivery.Address}");
 
                 foreach (var product in order.Products)
                 {
                     Console.WriteLine($"{product.Type} - {product.Description}");
                 }
             }
+            Console.WriteLine();
         }
     }
     class Order<TDelivery> where TDelivery :  Delivery
@@ -141,25 +143,37 @@ namespace Delivery
             FillOrder();
             Id = number;
         }
-        public void FillOrder()
+        private void FillOrder()
         {
             bool isFull = false;
 
             while (!isFull)
             {
+                Console.Clear();
                 Console.WriteLine("1 - Добавить в заказ позицию\n2 - Удалить из заказа позицию\n3 - Подтвердить заказ");
 
                 switch (Console.ReadLine())
                 {
                     case "1":
+                        Console.Clear();
                         AddPosition();
                         break;
                     case "2":
-                        Console.WriteLine("Введите номер позиции, которую вы хотите удалить");
-                        int index = 0;
-                        Products.RemoveAt(GetIndex(index));
+                        Console.Clear();
+
+                        if (Products.Count == 0)
+                        {
+                            Console.WriteLine("Список продуктов пустой, удаление невозможно!");
+                        }
+                        else
+                        {
+                            Console.WriteLine("Введите номер позиции, которую вы хотите удалить");
+                            int index = 0;
+                            Products.RemoveAt(GetIndex(index));
+                        }
                         break;
                     case "3":
+                        Console.Clear();
                         isFull = true;
                         break;
                 }
@@ -208,33 +222,45 @@ namespace Delivery
             User user = CreateUser();
             HomeDelivery homeDelivery = new HomeDelivery();
 
-
             while (isWorking)
             {
                 Console.WriteLine($"Доставка по адресу: {homeDelivery.Address}");
-                Console.WriteLine("1 - Сделать новый заказ\n2 - Показать все ваши заказы");
+                Console.WriteLine("1 - Сделать новый заказ\n2 - Показать все ваши заказы\n3 - Выход");
 
                 switch (Console.ReadLine())
                 {
                     case "1":
-                        user.AddOrder(listOrders);
-                        Console.WriteLine("Выберите тип доставки: ");
+                        Console.Clear();
+                        Console.WriteLine("Выберите тип доставки:\n1 - На дом\n2 - В пункт выдачи\n3 - В магазин");
 
                         switch (Console.ReadLine())
                         {
                             case "1":
-                                orders[orders.Count - 1].Delivery = new HomeDelivery();
+                                user.AddOrder(user.HomeOrders);
+                                user.HomeOrders[user.HomeOrders.Count - 1].Delivery = new HomeDelivery();
                                 break;
                             case "2":
-                                orders[orders.Count - 1].Delivery = new PickPointDelivery();
+                                user.AddOrder(user.PointOrders);
+                                user.PointOrders[user.PointOrders.Count - 1].Delivery = new PickPointDelivery();
                                 break;
                             case "3":
-                                orders[orders.Count - 1].Delivery = new ShopDelivery();
+                                user.AddOrder(user.ShopOrders);
+                                user.ShopOrders[user.ShopOrders.Count - 1].Delivery = new ShopDelivery();
                                 break;
                         }
+                        Console.Clear();
                         break;
                     case "2":
-                        user.ShowOrders(orders);
+                        Console.Clear();
+                        Console.WriteLine("Заказы на дом:");
+                        user.ShowOrders(user.HomeOrders);
+                        Console.WriteLine("Заказы в пункты выдачи:");
+                        user.ShowOrders(user.PointOrders);
+                        Console.WriteLine("Заказы в магазин:");
+                        user.ShowOrders(user.ShopOrders);
+                        break;
+                    case "3":
+                        isWorking = false;
                         break;
                 }
             }
@@ -245,10 +271,5 @@ namespace Delivery
             string name = Console.ReadLine();
             return new User(name);
         }
-        private void ChangeDelivery()
-        {
-
-        }
-
     }
 }
