@@ -11,39 +11,40 @@ namespace Delivery
     }
     abstract class Delivery
     {
+        protected string address;
         public string Address
         {
             get
             {
-                return Address;
+                return address;
             }
             set
             {
-                Address = value.Trim();
+                address = value;
             }
         }
         protected int ArrivalHours;
 
-        virtual public void ShowArrivalHours()
+        virtual protected void ShowArrivalHours()
         {
-            Console.WriteLine($"Посылка прибудет через {ArrivalHours} по адресу: {Address}");
+            Console.WriteLine($"Посылка прибудет через {ArrivalHours} часов по адресу: {address}");
         }
     }
     class Courier
     {
+        private Random _rand = new Random();
+        private CouriersNames _name;
         public CouriersNames Name
         {
             get
             {
-                return Name;
+                return _name;
             }
             private set
             {
-                Name = value;
+                _name = value;
             }
         }
-        private Random _rand = new Random();
-
         public Courier()
         {
             Name = (CouriersNames)_rand.Next(0, 2);
@@ -59,9 +60,17 @@ namespace Delivery
             Address = Console.ReadLine();
             ArrivalHours = 5;
             _courier = new Courier();
+            ShowArrivalHours();
+        }
+        public HomeDelivery(string address)
+        {
+            Address = address;
+            ArrivalHours = 5;
+            _courier = new Courier();
+            ShowArrivalHours();
         }
 
-        public override void ShowArrivalHours()
+        protected override void ShowArrivalHours()
         {
             base.ShowArrivalHours();
             Console.WriteLine($"Ваш курьер - {_courier.Name}");
@@ -74,6 +83,7 @@ namespace Delivery
         {
             Address = "PickPoint";
             ArrivalHours = 3;
+            ShowArrivalHours();
         }
 
     }
@@ -83,8 +93,9 @@ namespace Delivery
         public ShopDelivery()
         {
             Address = "Shop";
+            ShowArrivalHours();
         }
-        public override void ShowArrivalHours()
+        protected override void ShowArrivalHours()
         {
             Console.WriteLine($"Ваш заказ уже собран и ждёт вас в магазине по адресу: {Address}");
         }
@@ -152,12 +163,15 @@ namespace Delivery
         {
             Console.Clear();
             Console.WriteLine("Выберите тип доставки:\n1 - На дом\n2 - В пункт выдачи\n3 - В магазин");
+            string userInput = Console.ReadLine();
 
-            switch (Console.ReadLine())
+            switch (userInput)
             {
                 case "1":
+                    Console.WriteLine("Введите ваш адрес:");
+                    string address = Console.ReadLine();
                     AddOrder(_homeOrders);
-                    _homeOrders[_homeOrders.Count - 1].Delivery = new HomeDelivery();
+                    _homeOrders[_homeOrders.Count - 1].Delivery = new HomeDelivery(address);
                     break;
                 case "2":
                     AddOrder(_pointOrders);
@@ -290,11 +304,12 @@ namespace Delivery
         {
             bool isWorking = true;
             User user = CreateUser();
-            HomeDelivery homeDelivery = new HomeDelivery();
+
+            Console.WriteLine("Сделайте первый заказ!");
+            user.MakeOrder();
 
             while (isWorking)
             {
-                Console.WriteLine($"Доставка по адресу: {homeDelivery.Address}");
                 Console.WriteLine("1 - Сделать новый заказ\n2 - Показать все ваши заказы\n3 - Выход");
 
                 switch (Console.ReadLine())
